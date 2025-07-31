@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  playwright:
+    build: 
+      context: ..
+      dockerfile: docker/Dockerfile
+    volumes:
+      - ../src:/app/src
+      - ../tests:/app/tests
+      - ../scripts:/app/scripts
+      - ../data:/app/data
+    environment:
+      - PYTHONPATH=/app
+      - HEADLESS=true
+      - LOG_LEVEL=INFO
+    command: tail -f /dev/null  # Keep container running
+    
+  # 開発用Jupyterノートブック（オプション）
+  jupyter:
+    build: 
+      context: ..
+      dockerfile: docker/Dockerfile
+    ports:
+      - "8888:8888"
+    volumes:
+      - ../src:/app/src
+      - ../notebooks:/app/notebooks
+    environment:
+      - PYTHONPATH=/app
+    command: jupyter notebook --ip=0.0.0.0 --no-browser --allow-root

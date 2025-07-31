@@ -1,0 +1,63 @@
+{
+  "test_books": [
+    {
+      "n_code": "N02306",
+      "title": "パラレイドデイズ④",
+      "expected_results": {
+        "amazon_kindle": {
+          "search_query": "パラレイドデイズ④ いずみノベルズ",
+          "expected_pattern": "https://www.amazon.co.jp/dp/",
+          "notes": "第4巻なので巻数表記に注意"
+        },
+        "rakuten_kobo": {
+          "search_query": "パラレイドデイズ 4 いずみノベルズ",
+          "expected_pattern": "https://books.rakuten.co.jp/rk/",
+          "notes": "楽天は巻数がアラビア数字の場合あり"
+        },
+        "bookwalker": {
+          "search_query": "パラレイドデイズ④",
+          "expected_pattern": "https://bookwalker.jp/de",
+          "notes": "BookWalkerは出版社名不要な場合が多い"
+        }
+      }
+    },
+    {
+      "n_code": "N02307",
+      "title": "エアボーンウイッチ④",
+      "expected_results": {
+        "amazon_kindle": {
+          "search_query": "エアボーンウイッチ④ いずみノベルズ",
+          "expected_pattern": "https://www.amazon.co.jp/dp/",
+          "notes": "第4巻なので巻数表記に注意"
+        },
+        "rakuten_kobo": {
+          "search_query": "エアボーンウイッチ 4 いずみノベルズ",
+          "expected_pattern": "https://books.rakuten.co.jp/rk/",
+          "notes": "楽天は巻数がアラビア数字の場合あり"
+        },
+        "bookwalker": {
+          "search_query": "エアボーンウイッチ④",
+          "expected_pattern": "https://bookwalker.jp/de",
+          "notes": "BookWalkerは出版社名不要な場合が多い"
+        }
+      }
+    }
+  ],
+  "test_configuration": {
+    "headless": false,
+    "timeout": 30000,
+    "wait_between_requests": 2000,
+    "max_retries": 3,
+    "screenshot_on_error": true,
+    "log_level": "DEBUG"
+  },
+  "validation_rules": {
+    "title_match_threshold": 0.85,
+    "publisher_must_contain": ["いずみノベルズ", "イズミノベルズ", "IZUMI"],
+    "exclude_patterns": ["分冊版", "お試し版", "サンプル"],
+    "price_range": {
+      "min": 500,
+      "max": 2000
+    }
+  }
+}
