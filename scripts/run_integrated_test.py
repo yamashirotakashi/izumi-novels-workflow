@@ -18,6 +18,7 @@ sys.path.insert(0, str(project_root))
 from src.scraping.amazon_kindle_scraper import AmazonKindleScraper
 from src.scraping.rakuten_kobo_scraper import RakutenKoboScraper
 from src.scraping.google_play_books_scraper import GooglePlayBooksScraper
+from src.scraping.bookwalker_scraper import BookWalkerScraper
 from src.scraping.google_sheets_client_updated import GoogleSheetsClient, SalesLinkUpdate, SalesChannel
 from src.scraping.result_exporter import ResultExporter, BatchResult, ScrapingResult, ResultStatus, ExportFormat
 from src.scraping.error_handler import ErrorHandler, RetryConfig
@@ -64,6 +65,11 @@ class IntegratedTestRunner:
             'Google Play Books': GooglePlayBooksScraper(
                 headless=True,
                 timeout=20000,
+                screenshot_dir=screenshot_dir
+            ),
+            'BOOK☆WALKER': BookWalkerScraper(
+                headless=True,
+                timeout=30000,  # BOOK☆WALKERは少し長めのタイムアウト
                 screenshot_dir=screenshot_dir
             )
         }
@@ -199,7 +205,8 @@ class IntegratedTestRunner:
                     channel_map = {
                         'Amazon Kindle': SalesChannel.KINDLE,
                         '楽天Kobo': SalesChannel.KOBO,
-                        'Google Play Books': SalesChannel.GOOGLE
+                        'Google Play Books': SalesChannel.GOOGLE,
+                        'BOOK☆WALKER': SalesChannel.BOOKWALKER
                     }
                     
                     if result.site_name in channel_map:

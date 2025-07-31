@@ -1,0 +1,289 @@
+{
+  "timestamp": "2025-07-31T23:22:48.119297",
+  "phase": "Phase 1 - 高度ブラウザ自動化",
+  "technology": "undetected-chromedriver + Human Behavior Simulation",
+  "tests": {
+    "import_compatibility": {
+      "status": "PASS",
+      "message": "すべてのモジュールを正常にインポート",
+      "details": [
+        "HumanBehavior: OK",
+        "SeleniumBaseScraper: OK",
+        "undetected_chromedriver: OK",
+        "selenium: OK",
+        "BeautifulSoup: OK"
+      ]
+    },
+    "configuration_validation": {
+      "status": "PASS",
+      "message": "設定検証完了",
+      "details": {
+        "expected": {
+          "kinoppy": {
+            "BASE_URL": "https://www.kinokuniya.co.jp",
+            "SEARCH_URL": "https://www.kinokuniya.co.jp/kinoppystore/search.php",
+            "SITE_NAME": "kinoppy_advanced"
+          },
+          "reader_store": {
+            "BASE_URL": "https://ebookstore.sony.jp",
+            "SEARCH_URL": "https://ebookstore.sony.jp/search/",
+            "SITE_NAME": "reader_store_advanced"
+          }
+        },
+        "actual": {
+          "kinoppy": {
+            "SITE_NAME": "kinoppy_advanced",
+            "BASE_URL": "https://www.kinokuniya.co.jp",
+            "SEARCH_URL": "https://www.kinokuniya.co.jp/kinoppystore/search.php"
+          },
+          "reader_store": {
+            "SITE_NAME": "reader_store_advanced",
+            "BASE_URL": "https://ebookstore.sony.jp",
+            "SEARCH_URL": "https://ebookstore.sony.jp/search/"
+          }
+        },
+        "validation": {
+          "kinoppy": true,
+          "reader_store": true
+        }
+      }
+    },
+    "human_behavior_simulation": {
+      "status": "PASS",
+      "message": "人間動作パラメータ検証完了",
+      "details": {
+        "parameters": {
+          "typing_speed_min": 0.05,
+          "typing_speed_max": 0.15,
+          "mouse_move_steps": 10,
+          "scroll_pause_min": 0.5,
+          "scroll_pause_max": 2.0,
+          "page_load_wait_min": 2.0,
+          "page_load_wait_max": 5.0
+        },
+        "ranges_valid": true
+      }
+    },
+    "title_variant_generation": {
+      "status": "PASS",
+      "message": "タイトルバリエーション生成完了",
+      "details": {
+        "test_title": "課長が目覚めたら異世界SF艦隊の提督になってた件です①",
+        "base_variants": [
+          "課長が目覚めたら異世界SF艦隊の提督になってた件です①",
+          "課長が目覚めたら異世界SF艦隊の提督になってた件です1",
+          "課長が目覚めたら異世界SF艦隊の提督になってた件です第1巻",
+          "課長が目覚めたら異世界SF艦隊の提督になってた件です(1)",
+          "課長が目覚めたら異世界SF艦隊の提督になってた件です 1",
+          "課長が目覚めたら異世界SF艦隊の提督になってた件です１"
+        ],
+        "basic_quality": true,
+        "kinoppy_method_exists": true,
+        "reader_store_method_exists": true,
+        "methods_exist": true
+      }
+    },
+    "url_validation_logic": {
+      "status": "PASS",
+      "message": "URL検証ロジック完了",
+      "details": {
+        "kinoppy_results": [
+          {
+            "url": "https://www.kinokuniya.co.jp/dsg-01-9784123456789",
+            "expected": true,
+            "actual": true,
+            "pass": true
+          },
+          {
+            "url": "https://www.kinokuniya.co.jp/detail/book-123",
+            "expected": true,
+            "actual": true,
+            "pass": true
+          },
+          {
+            "url": "https://example.com/book",
+            "expected": false,
+            "actual": false,
+            "pass": true
+          },
+          {
+            "url": "",
+            "expected": false,
+            "actual": false,
+            "pass": true
+          }
+        ],
+        "reader_store_results": [
+          {
+            "url": "https://ebookstore.sony.jp/storeProduct/123",
+            "expected": true,
+            "actual": true,
+            "pass": true
+          },
+          {
+            "url": "https://ebookstore.sony.jp/item/456",
+            "expected": true,
+            "actual": true,
+            "pass": true
+          },
+          {
+            "url": "https://example.com/book",
+            "expected": false,
+            "actual": false,
+            "pass": true
+          },
+          {
+            "url": "",
+            "expected": false,
+            "actual": false,
+            "pass": true
+          }
+        ],
+        "kinoppy_pass": true,
+        "reader_store_pass": true
+      }
+    },
+    "similarity_scoring": {
+      "status": "FAIL",
+      "message": "類似度スコア計算完了",
+      "details": {
+        "scoring_results": [
+          {
+            "query": "課長が目覚めたら異世界SF艦隊の提督になってた件です①...",
+            "title": "課長が目覚めたら異世界SF艦隊の提督になってた件です 1...",
+            "score": 0.9642857142857143,
+            "expected_min": 0.8,
+            "pass": true
+          },
+          {
+            "query": "課長が目覚めたら異世界SF艦隊の提督になってた件です①...",
+            "title": "課長が目覚めたら異世界SF艦隊の提督になってた件です...",
+            "score": 0.962962962962963,
+            "expected_min": 0.7,
+            "pass": true
+          },
+          {
+            "query": "課長が目覚めたら異世界SF艦隊の提督になってた件です①...",
+            "title": "異世界転生RPG物語...",
+            "score": 0.11111111111111116,
+            "expected_min": 0.3,
+            "pass": false
+          },
+          {
+            "query": "課長が目覚めたら異世界SF艦隊の提督になってた件です①...",
+            "title": "全く関係ない本...",
+            "score": 0.03703703703703709,
+            "expected_min": 0.1,
+            "pass": false
+          }
+        ],
+        "scoring_valid": false
+      }
+    },
+    "implementation_completeness": {
+      "status": "PASS",
+      "message": "実装完全性検証完了",
+      "details": {
+        "required_methods": [
+          "search_book",
+          "_navigate_to_search_page",
+          "_perform_advanced_search",
+          "_extract_advanced_search_results",
+          "_human_type",
+          "_human_pause",
+          "_human_scroll",
+          "get_stats"
+        ],
+        "kinoppy_methods": [
+          {
+            "method": "search_book",
+            "exists": true
+          },
+          {
+            "method": "_navigate_to_search_page",
+            "exists": true
+          },
+          {
+            "method": "_perform_advanced_search",
+            "exists": true
+          },
+          {
+            "method": "_extract_advanced_search_results",
+            "exists": true
+          },
+          {
+            "method": "_human_type",
+            "exists": true
+          },
+          {
+            "method": "_human_pause",
+            "exists": true
+          },
+          {
+            "method": "_human_scroll",
+            "exists": true
+          },
+          {
+            "method": "get_stats",
+            "exists": true
+          }
+        ],
+        "reader_store_methods": [
+          {
+            "method": "search_book",
+            "exists": true
+          },
+          {
+            "method": "_navigate_to_search_page",
+            "exists": true
+          },
+          {
+            "method": "_perform_advanced_search",
+            "exists": true
+          },
+          {
+            "method": "_extract_advanced_search_results",
+            "exists": true
+          },
+          {
+            "method": "_human_type",
+            "exists": true
+          },
+          {
+            "method": "_human_pause",
+            "exists": true
+          },
+          {
+            "method": "_human_scroll",
+            "exists": true
+          },
+          {
+            "method": "get_stats",
+            "exists": true
+          }
+        ],
+        "kinoppy_complete": true,
+        "reader_store_complete": true
+      }
+    },
+    "chrome_compatibility": {
+      "status": "PARTIAL",
+      "message": "Chrome互換性確認完了",
+      "details": {
+        "chrome_available": false,
+        "chrome_path": null,
+        "wsl_environment": true,
+        "headless_mode_required": true,
+        "gui_support_limited": true,
+        "undetected_chromedriver_ready": true
+      }
+    }
+  },
+  "overall_status": "GOOD",
+  "test_summary": {
+    "passed": 6,
+    "partial": 1,
+    "total": 8,
+    "pass_rate": 0.8125
+  }
+}

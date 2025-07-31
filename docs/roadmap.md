@@ -520,3 +520,6 @@ gantt
 **文書最終更新**: 2025-01-08  
 **次回レビュー予定**: 2025-02-01  
 **承認**: いずみノベルズ社長 (承認待ち)
+
+
+Copy-Item -Path "data\bibliography.db" -Destination $env:APPDATA\TechBridge\data\bibliography.db" -Force

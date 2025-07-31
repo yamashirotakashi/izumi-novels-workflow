@@ -1,0 +1,70 @@
+{
+  "timestamp": "2025-07-31T23:17:39.733123",
+  "phase": "Phase 1 - 高度ブラウザ自動化",
+  "technology": "undetected-chromedriver + Human Behavior Simulation",
+  "tests": {
+    "import_compatibility": {
+      "status": "PASS",
+      "message": "すべてのモジュールを正常にインポート",
+      "details": [
+        "KinoppyAdvancedScraper: OK",
+        "ReaderStoreAdvancedScraper: OK",
+        "undetected_chromedriver: OK",
+        "selenium: OK",
+        "BeautifulSoup: OK"
+      ]
+    },
+    "class_initialization": {
+      "status": "FAIL",
+      "message": "初期化エラー: Can't instantiate abstract class KinoppyAdvancedScraper without an implementation for abstract method '_search_impl'",
+      "details": {}
+    },
+    "configuration_validation": {
+      "status": "FAIL",
+      "message": "設定検証エラー: Can't instantiate abstract class KinoppyAdvancedScraper without an implementation for abstract method '_search_impl'",
+      "details": {}
+    },
+    "human_behavior_simulation": {
+      "status": "PASS",
+      "message": "人間動作パラメータ検証完了",
+      "details": {
+        "parameters": {
+          "typing_speed_min": 0.05,
+          "typing_speed_max": 0.15,
+          "mouse_move_steps": 10,
+          "scroll_pause_min": 0.5,
+          "scroll_pause_max": 2.0,
+          "page_load_wait_min": 2.0,
+          "page_load_wait_max": 5.0
+        },
+        "ranges_valid": true
+      }
+    },
+    "title_variant_generation": {
+      "status": "FAIL",
+      "message": "バリエーション生成エラー: Can't instantiate abstract class KinoppyAdvancedScraper without an implementation for abstract method '_search_impl'",
+      "details": {}
+    },
+    "url_validation_logic": {
+      "status": "FAIL",
+      "message": "URL検証エラー: Can't instantiate abstract class KinoppyAdvancedScraper without an implementation for abstract method '_search_impl'",
+      "details": {}
+    },
+    "search_strategy": {
+      "status": "FAIL",
+      "message": "検索戦略エラー: Can't instantiate abstract class KinoppyAdvancedScraper without an implementation for abstract method '_search_impl'",
+      "details": {}
+    },
+    "similarity_scoring": {
+      "status": "FAIL",
+      "message": "類似度スコア計算エラー: Can't instantiate abstract class KinoppyAdvancedScraper without an implementation for abstract method '_search_impl'",
+      "details": {}
+    }
+  },
+  "overall_status": "FAIL",
+  "test_summary": {
+    "passed": 2,
+    "total": 8,
+    "pass_rate": 0.25
+  }
+}
