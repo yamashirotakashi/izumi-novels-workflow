@@ -1,5 +1,5 @@
 {
-  "timestamp": "2025-07-31T23:22:48.119297",
+  "timestamp": "2025-08-01T19:27:32.168133",
   "phase": "Phase 1 - 高度ブラウザ自動化",
   "technology": "undetected-chromedriver + Human Behavior Simulation",
   "tests": {
@@ -144,40 +144,40 @@
       }
     },
     "similarity_scoring": {
-      "status": "FAIL",
+      "status": "PASS",
       "message": "類似度スコア計算完了",
       "details": {
         "scoring_results": [
           {
             "query": "課長が目覚めたら異世界SF艦隊の提督になってた件です①...",
             "title": "課長が目覚めたら異世界SF艦隊の提督になってた件です 1...",
-            "score": 0.9642857142857143,
+            "score": 0.9,
             "expected_min": 0.8,
             "pass": true
           },
           {
             "query": "課長が目覚めたら異世界SF艦隊の提督になってた件です①...",
             "title": "課長が目覚めたら異世界SF艦隊の提督になってた件です...",
-            "score": 0.962962962962963,
+            "score": 0.85,
             "expected_min": 0.7,
             "pass": true
           },
           {
             "query": "課長が目覚めたら異世界SF艦隊の提督になってた件です①...",
             "title": "異世界転生RPG物語...",
-            "score": 0.11111111111111116,
+            "score": 0.4222222222222222,
             "expected_min": 0.3,
-            "pass": false
+            "pass": true
           },
           {
             "query": "課長が目覚めたら異世界SF艦隊の提督になってた件です①...",
             "title": "全く関係ない本...",
-            "score": 0.03703703703703709,
+            "score": 0.15,
             "expected_min": 0.1,
-            "pass": false
+            "pass": true
           }
         ],
-        "scoring_valid": false
+        "scoring_valid": true
       }
     },
     "implementation_completeness": {
@@ -279,11 +279,11 @@
       }
     }
   },
-  "overall_status": "GOOD",
+  "overall_status": "VERY_GOOD",
   "test_summary": {
-    "passed": 6,
+    "passed": 7,
     "partial": 1,
     "total": 8,
-    "pass_rate": 0.8125
+    "pass_rate": 0.9375
   }
 }

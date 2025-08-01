@@ -1,0 +1,427 @@
+{
+  "sites": {
+    "kinoppy": {
+      "name": "Kinoppy",
+      "base_url": "https://www.kinokuniya.co.jp/kinoppystore/",
+      "search_url": "https://www.kinokuniya.co.jp/kinoppystore/search.php",
+      "selectors": {
+        "search_input": [
+          "input[name='q']",
+          "input[type='search']",
+          ".search-input",
+          "#search-box",
+          ".search-box input",
+          "input[placeholder*='検索']",
+          "input[placeholder*='search']"
+        ],
+        "search_results": [
+          ".product-item",
+          ".item",
+          ".book-item",
+          ".search-result-item",
+          ".result",
+          "[class*='product']",
+          "[class*='book']",
+          "[class*='item']"
+        ],
+        "book_title": [
+          ".title",
+          ".book-title",
+          ".product-title",
+          "h2",
+          "h3",
+          "[class*='title']"
+        ],
+        "book_link": [
+          "a[href*='/product/']",
+          ".title a",
+          ".book-title a",
+          ".product-link"
+        ]
+      },
+      "wait_times": {
+        "page_load": 5,
+        "search_results": 3,
+        "between_requests": 2
+      },
+      "search_params": {
+        "direct_url_pattern": "https://www.kinokuniya.co.jp/kinoppystore/search.php?q={query}",
+        "encoding": "utf-8"
+      }
+    },
+    "reader_store": {
+      "name": "Reader Store",
+      "base_url": "https://ebookstore.sony.jp/",
+      "search_url": "https://ebookstore.sony.jp/search/",
+      "selectors": {
+        "search_input": [
+          "input[type='search']",
+          "input[name='query']",
+          "input[name='q']",
+          ".search-input",
+          "#search-input",
+          ".search-box input",
+          "input[placeholder*='検索']"
+        ],
+        "search_results": [
+          ".book-item",
+          ".product",
+          ".result-item",
+          ".search-result",
+          "[class*='book']",
+          "[class*='product']",
+          "[class*='item']"
+        ],
+        "book_title": [
+          ".book-title",
+          ".title",
+          ".product-name",
+          "h2",
+          "h3"
+        ],
+        "book_link": [
+          "a[href*='/product/']",
+          ".book-title a",
+          ".title a"
+        ]
+      },
+      "wait_times": {
+        "page_load": 5,
+        "search_results": 3,
+        "between_requests": 2
+      },
+      "search_params": {
+        "direct_url_pattern": "https://ebookstore.sony.jp/search/?query={query}",
+        "encoding": "utf-8"
+      }
+    },
+    "amazon": {
+      "name": "Amazon",
+      "base_url": "https://www.amazon.co.jp/",
+      "search_url": "https://www.amazon.co.jp/s",
+      "selectors": {
+        "search_input": [
+          "#twotabsearchtextbox",
+          "input[name='field-keywords']",
+          ".nav-search-field input"
+        ],
+        "search_results": [
+          "[data-component-type='s-search-result']",
+          ".s-result-item",
+          ".sg-col-inner .s-widget-container"
+        ],
+        "book_title": [
+          "h2 a span",
+          ".a-size-mini span",
+          ".s-link-style a"
+        ],
+        "book_link": [
+          "h2 a",
+          ".s-link-style"
+        ]
+      },
+      "wait_times": {
+        "page_load": 4,
+        "search_results": 3,
+        "between_requests": 3
+      },
+      "search_params": {
+        "direct_url_pattern": "https://www.amazon.co.jp/s?k={query}&i=digital-text",
+        "encoding": "utf-8"
+      }
+    },
+    "bookwalker": {
+      "name": "BOOK☆WALKER",
+      "base_url": "https://bookwalker.jp/",
+      "search_url": "https://bookwalker.jp/search/?word=",
+      "selectors": {
+        "search_input": [
+          "input[name='word']",
+          ".search-box input",
+          "input[type='search']"
+        ],
+        "search_results": [
+          ".book-list .item",
+          ".search-result-item",
+          ".book-item"
+        ],
+        "book_title": [
+          ".book-title",
+          ".title",
+          "h3"
+        ],
+        "book_link": [
+          ".book-title a",
+          ".title a"
+        ]
+      },
+      "wait_times": {
+        "page_load": 4,
+        "search_results": 3,
+        "between_requests": 2
+      },
+      "search_params": {
+        "direct_url_pattern": "https://bookwalker.jp/search/?word={query}",
+        "encoding": "utf-8"
+      }
+    },
+    "ebookjapan": {
+      "name": "ebookjapan",
+      "base_url": "https://ebookjapan.yahoo.co.jp/",
+      "search_url": "https://ebookjapan.yahoo.co.jp/search/",
+      "selectors": {
+        "search_input": [
+          "input[name='keyword']",
+          ".search-input",
+          "input[type='search']"
+        ],
+        "search_results": [
+          ".book-item",
+          ".search-item",
+          ".product"
+        ],
+        "book_title": [
+          ".book-title",
+          ".title",
+          "h3"
+        ],
+        "book_link": [
+          ".book-title a",
+          ".title a"
+        ]
+      },
+      "wait_times": {
+        "page_load": 4,
+        "search_results": 3,
+        "between_requests": 2
+      },
+      "search_params": {
+        "direct_url_pattern": "https://ebookjapan.yahoo.co.jp/search/?keyword={query}",
+        "encoding": "utf-8"
+      }
+    },
+    "rakuten_kobo": {
+      "name": "楽天Kobo",
+      "base_url": "https://books.rakuten.co.jp/",
+      "search_url": "https://books.rakuten.co.jp/search/",
+      "selectors": {
+        "search_input": [
+          "input[name='sv']",
+          ".search-box input",
+          "input[type='search']"
+        ],
+        "search_results": [
+          ".item",
+          ".book-item",
+          ".search-result"
+        ],
+        "book_title": [
+          ".book-title",
+          ".title",
+          "h3"
+        ],
+        "book_link": [
+          ".book-title a",
+          ".title a"
+        ]
+      },
+      "wait_times": {
+        "page_load": 4,
+        "search_results": 3,
+        "between_requests": 2
+      },
+      "search_params": {
+        "direct_url_pattern": "https://books.rakuten.co.jp/search/?sv={query}",
+        "encoding": "utf-8"
+      }
+    },
+    "booklive": {
+      "name": "BookLive!",
+      "base_url": "https://booklive.jp/",
+      "search_url": "https://booklive.jp/search/keyword/",
+      "selectors": {
+        "search_input": [
+          "input[name='keyword']",
+          ".search-input",
+          "input[type='search']"
+        ],
+        "search_results": [
+          ".book-item",
+          ".search-item",
+          ".item"
+        ],
+        "book_title": [
+          ".book-title",
+          ".title",
+          "h3"
+        ],
+        "book_link": [
+          ".book-title a",
+          ".title a"
+        ]
+      },
+      "wait_times": {
+        "page_load": 4,
+        "search_results": 3,
+        "between_requests": 2
+      },
+      "search_params": {
+        "direct_url_pattern": "https://booklive.jp/search/keyword/{query}",
+        "encoding": "utf-8"
+      }
+    },
+    "honto": {
+      "name": "honto",
+      "base_url": "https://honto.jp/",
+      "search_url": "https://honto.jp/netstore/search.html",
+      "selectors": {
+        "search_input": [
+          "input[name='srchf']",
+          ".search-box input",
+          "input[type='search']"
+        ],
+        "search_results": [
+          ".book-item",
+          ".search-result",
+          ".item"
+        ],
+        "book_title": [
+          ".book-title",
+          ".title",
+          "h3"
+        ],
+        "book_link": [
+          ".book-title a",
+          ".title a"
+        ]
+      },
+      "wait_times": {
+        "page_load": 4,
+        "search_results": 3,
+        "between_requests": 2
+      },
+      "search_params": {
+        "direct_url_pattern": "https://honto.jp/netstore/search.html?srchf={query}",
+        "encoding": "utf-8"
+      }
+    },
+    "apple_books": {
+      "name": "Apple Books",
+      "base_url": "https://books.apple.com/jp/",
+      "search_url": "https://books.apple.com/jp/search",
+      "selectors": {
+        "search_input": [
+          "input[type='search']",
+          ".search-input",
+          "input[name='term']"
+        ],
+        "search_results": [
+          ".lockup",
+          ".search-result",
+          ".item"
+        ],
+        "book_title": [
+          ".product-title",
+          ".title",
+          "h3"
+        ],
+        "book_link": [
+          ".product-title a",
+          ".title a"
+        ]
+      },
+      "wait_times": {
+        "page_load": 5,
+        "search_results": 4,
+        "between_requests": 3
+      },
+      "search_params": {
+        "direct_url_pattern": "https://books.apple.com/jp/search?term={query}",
+        "encoding": "utf-8"
+      }
+    },
+    "google_play_books": {
+      "name": "Google Play Books",
+      "base_url": "https://play.google.com/store/books/",
+      "search_url": "https://play.google.com/store/search",
+      "selectors": {
+        "search_input": [
+          "input[name='q']",
+          ".search-box input",
+          "input[type='search']"
+        ],
+        "search_results": [
+          ".cluster-card",
+          ".search-result",
+          ".item"
+        ],
+        "book_title": [
+          ".title",
+          ".book-title",
+          "h3"
+        ],
+        "book_link": [
+          ".title a",
+          ".book-title a"
+        ]
+      },
+      "wait_times": {
+        "page_load": 5,
+        "search_results": 4,
+        "between_requests": 3
+      },
+      "search_params": {
+        "direct_url_pattern": "https://play.google.com/store/search?q={query}&c=books",
+        "encoding": "utf-8"
+      }
+    },
+    "amazon_pod": {
+      "name": "Amazon POD (印刷版)",
+      "base_url": "https://www.amazon.co.jp/",
+      "search_url": "https://www.amazon.co.jp/s",
+      "selectors": {
+        "search_input": [
+          "#twotabsearchtextbox",
+          "input[name='field-keywords']",
+          ".nav-search-field input"
+        ],
+        "search_results": [
+          "[data-component-type='s-search-result']",
+          ".s-result-item",
+          ".sg-col-inner .s-widget-container"
+        ],
+        "book_title": [
+          "h2 a span",
+          ".a-size-mini span",
+          ".s-link-style a"
+        ],
+        "book_link": [
+          "h2 a",
+          ".s-link-style"
+        ]
+      },
+      "wait_times": {
+        "page_load": 4,
+        "search_results": 3,
+        "between_requests": 3
+      },
+      "search_params": {
+        "direct_url_pattern": "https://www.amazon.co.jp/s?k={query}&i=stripbooks",
+        "encoding": "utf-8"
+      }
+    }
+  },
+  "global_settings": {
+    "chrome_options": [
+      "--no-sandbox",
+      "--disable-dev-shm-usage",
+      "--disable-blink-features=AutomationControlled",
+      "--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    ],
+    "retry_attempts": 3,
+    "timeout_default": 10,
+    "screenshot_on_error": true
+  },
+  "version": "1.0.0",
+  "last_updated": "2025-08-01"
+}
