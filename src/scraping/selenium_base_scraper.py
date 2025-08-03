@@ -14,6 +14,9 @@ import json
 from pathlib import Path
 import editdistance
 
+# Import unified title processing utility
+from .utils.title_processing import TitleProcessor
+
 logger = logging.getLogger(__name__)
 
 
@@ -186,23 +189,11 @@ class SeleniumBaseScraper(ABC):
     @staticmethod
     def normalize_title(title: str) -> str:
         """
-        タイトルの正規化
+        タイトルの正規化 - 統合タイトル処理ユーティリティに委譲
         
         全角・半角統一、記号除去、スペース正規化など
         """
-        # Unicode正規化
-        title = unicodedata.normalize('NFKC', title)
-        
-        # 記号の除去
-        title = re.sub(r'[【】\[\]（）\(\)「」『』《》〈〉]', '', title)
-        
-        # 連続するスペースを単一スペースに
-        title = re.sub(r'\s+', ' ', title)
-        
-        # 前後の空白を除去
-        title = title.strip()
-        
-        return title.lower()
+        return TitleProcessor.normalize_title(title)
     
     def _extract_keywords(self, text: str) -> set:
         """

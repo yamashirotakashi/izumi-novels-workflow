@@ -1,0 +1,22 @@
+{
+  "site": "amazon",
+  "query": "異世界転生",
+  "success": true,
+  "books_found": 2,
+  "execution_time": 0.0,
+  "error_message": null,
+  "timestamp": "2025-08-02 20:55:31",
+  "books": [
+    {
+      "title": "Test Book 1",
+      "url": "https://amazon.co.jp/dp/TEST123",
+      "similarity_score": 0.95
+    },
+    {
+      "title": "Test Book 2",
+      "url": "https://amazon.co.jp/dp/TEST456",
+      "similarity_score": 0.88
+    }
+  ],
+  "test_type": "infrastructure_verification"
+}

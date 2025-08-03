@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IzumiNovels-Workflow テスト結果レポート</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+        .header p {
+            margin: 10px 0 0;
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+        .summary {
+            padding: 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            border-left: 4px solid #667eea;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .success { color: #28a745; border-left-color: #28a745; }
+        .danger { color: #dc3545; border-left-color: #dc3545; }
+        .warning { color: #ffc107; border-left-color: #ffc107; }
+        .info { color: #17a2b8; border-left-color: #17a2b8; }
+        .results {
+            padding: 30px;
+        }
+        .results h2 {
+            margin-bottom: 20px;
+            color: #495057;
+            border-bottom: 2px solid #dee2e6;
+            padding-bottom: 10px;
+        }
+        .result-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+        .result-table th,
+        .result-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .result-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+        }
+        .result-table tr:hover {
+            background-color: #f8f9fa;
+        }
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .status-success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .status-failed {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .status-error {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        .footer {
+            padding: 20px 30px;
+            background-color: #f8f9fa;
+            border-top: 1px solid #dee2e6;
+            text-align: center;
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+        .progress-bar {
+            background-color: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            height: 20px;
+            margin: 10px 0;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745, #20c997);
+            transition: width 0.3s ease;
+        }
+        .chart-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- ヘッダー -->
+        <div class="header">
+            <h1>🚀 IzumiNovels-Workflow</h1>
+            <p>Phase 1 Windows実機テスト結果レポート</p>
+        </div>
+
+        <!-- サマリーセクション -->
+        <div class="summary">
+            <div class="stats">
+                <div class="stat-card info">
+                    <div class="stat-number">4</div>
+                    <div class="stat-label">総テスト数</div>
+                </div>
+                <div class="stat-card success">
+                    <div class="stat-number">4</div>
+                    <div class="stat-label">成功</div>
+                </div>
+                <div class="stat-card danger">
+                    <div class="stat-number">0</div>
+                    <div class="stat-label">失敗</div>
+                </div>
+                <div class="stat-card warning">
+                    <div class="stat-number">0</div>
+                    <div class="stat-label">エラー</div>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-label">成功率</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 100%"></div>
+                </div>
+                <div class="stat-number success">100%</div>
+            </div>
+        </div>
+
+        <!-- 詳細結果 -->
+        <div class="results">
+            <h2>📋 詳細テスト結果</h2>
+            <table class="result-table">
+                <thead>
+                    <tr>
+                        <th>サイト名</th>
+                        <th>ステータス</th>
+                        <th>実行時間</th>
+                        <th>実行日時</th>
+                        <th>メッセージ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                                        <tr>
+                        <td>Google Play Books</td>
+                        <td><span class="status-badge status-success">SUCCESS</span></td>
+                        <td>0.08秒</td>
+                        <td>2025-08-02 20:22:40</td>
+                        <td>[QUICK] Google Play Books Quick Setup Test Started
+==============================================...</td>
+                    </tr>                    <tr>
+                        <td>BOOK☆WALKER</td>
+                        <td><span class="status-badge status-success">SUCCESS</span></td>
+                        <td>0.08秒</td>
+                        <td>2025-08-02 20:22:42</td>
+                        <td>[QUICK] BOOK☆WALKER Quick Setup Test Started
+==================================================
+[...</td>
+                    </tr>                    <tr>
+                        <td>Amazon Kindle</td>
+                        <td><span class="status-badge status-success">SUCCESS</span></td>
+                        <td>0.08秒</td>
+                        <td>2025-08-02 20:22:44</td>
+                        <td>[QUICK] Amazon Kindle Quick Setup Test Started
+==================================================...</td>
+                    </tr>                    <tr>
+                        <td>楽天Kobo</td>
+                        <td><span class="status-badge status-success">SUCCESS</span></td>
+                        <td>0.07秒</td>
+                        <td>2025-08-02 20:22:46</td>
+                        <td>[QUICK] 楽天Kobo Quick Setup Test Started
+==================================================
+[OK] 楽...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- フッター -->
+        <div class="footer">
+            <p>生成日時: 2025-08-02 20:23:10 | IzumiNovels-Workflow Project</p>
+        </div>
+    </div>
+</body>
+</html>

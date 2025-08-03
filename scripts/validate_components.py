@@ -166,7 +166,7 @@ def validate_google_sheets():
     print("🔍 Google Sheetsクライアント検証")
     
     try:
-        from src.scraping.google_sheets_client_updated import GoogleSheetsClient, SalesChannel
+        from src.scraping.google_sheets_client_consolidated import GoogleSheetsClient, SalesChannel
         
         # 設定ファイルの存在確認
         credentials_path = project_root / 'config' / 'credentials' / 'google-sheets-key.json'

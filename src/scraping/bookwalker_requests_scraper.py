@@ -14,6 +14,8 @@ from .requests_scraper import RequestsScraper
 logger = logging.getLogger(__name__)
 
 
+from .utils.title_processing import TitleProcessor
+
 class BookWalkerRequestsScraper(RequestsScraper):
     """BOOK☆WALKER Requests版スクレイパー"""
     
@@ -65,23 +67,9 @@ class BookWalkerRequestsScraper(RequestsScraper):
         return variants[:5]  # 上位5つに制限
     
     def _create_volume_variants_bookwalker(self, title: str) -> List[str]:
-        """BOOK☆WALKER用巻数バリエーション生成"""
-        variants = []
-        
-        # 丸数字→第X巻
-        circle_to_volume = {
-            '①': '第1巻', '②': '第2巻', '③': '第3巻', '④': '第4巻', '⑤': '第5巻',
-            '⑥': '第6巻', '⑦': '第7巻', '⑧': '第8巻', '⑨': '第9巻', '⑩': '第10巻'
-        }
-        
-        for circle, volume in circle_to_volume.items():
-            if circle in title:
-                # 第X巻形式
-                variants.append(title.replace(circle, volume))
-                # X巻形式
-                variants.append(title.replace(circle, volume.replace('第', '')))
-        
-        return variants
+        """BOOK☆WALKER用巻数バリエーション生成 - 統合タイトル処理ユーティリティを使用"""
+        from .utils.title_processing import TitleProcessor
+        return TitleProcessor.create_volume_variants(title)
     
     async def _search_impl(self, book_title: str, n_code: str) -> Optional[str]:
         """BOOK☆WALKER検索の実装"""
@@ -248,22 +236,8 @@ class BookWalkerRequestsScraper(RequestsScraper):
         return text.translate(translation_table)
     
     def extract_volume_number(self, title: str) -> int:
-        """巻数抽出（BOOK☆WALKER対応版）"""
-        if not title:
-            return 1
-        
-        # 丸数字パターン
-        circle_numbers = {
-            '①': 1, '②': 2, '③': 3, '④': 4, '⑤': 5,
-            '⑥': 6, '⑦': 7, '⑧': 8, '⑨': 9, '⑩': 10
-        }
-        
-        for circle, number in circle_numbers.items():
-            if circle in title:
-                return number
-        
-        # 基本パターンは親クラスに委譲
-        volume = super().extract_volume_number(title)
+        """巻数抽出（BOOK☆WALKER対応版）- 統合タイトル処理ユーティリティに委譲"""
+        volume = TitleProcessor.extract_volume_number(title)
         return volume if volume is not None else 1
     
     def get_site_specific_headers(self) -> Dict[str, str]:

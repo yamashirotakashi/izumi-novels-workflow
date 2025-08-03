@@ -42,35 +42,21 @@ class SelectorInfo:
     created_at: datetime
     updated_at: datetime
 
-
-class SelectorDatabase:
-    """セレクタデータベース管理クラス"""
+class DatabaseSchemaManager:
+    """データベーススキーマ管理クラス"""
     
     SCHEMA_VERSION = "1.0.0"
     
-    def __init__(self, db_path: str = "config/selectors.db"):
+    def __init__(self, db_path: Path, logger: logging.Logger):
         """
-        データベース初期化
+        スキーママネージャー初期化
         
         Args:
             db_path: データベースファイルパス
+            logger: ロガーインスタンス
         """
-        self.db_path = Path(db_path)
-        self.db_path.parent.mkdir(parents=True, exist_ok=True)
-        
-        self.logger = self._setup_logger()
-        self._initialize_database()
-    
-    def _setup_logger(self) -> logging.Logger:
-        """ロガー設定"""
-        logger = logging.getLogger(f"{__name__}.SelectorDatabase")
-        logger.setLevel(logging.INFO)
-        if not logger.handlers:
-            handler = logging.StreamHandler()
-            formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-            handler.setFormatter(formatter)
-            logger.addHandler(handler)
-        return logger
+        self.db_path = db_path
+        self.logger = logger
     
     def _get_connection(self) -> sqlite3.Connection:
         """データベース接続取得"""
@@ -78,16 +64,16 @@ class SelectorDatabase:
         conn.row_factory = sqlite3.Row  # 辞書形式でアクセス可能
         return conn
     
-    def _initialize_database(self) -> None:
+    def initialize_database(self) -> None:
         """データベース初期化"""
         with self._get_connection() as conn:
             # テーブル作成
-            self._create_tables(conn)
+            self.create_tables(conn)
             # 初期データ投入
-            self._insert_default_global_settings(conn)
+            self.insert_default_global_settings(conn)
             conn.commit()
     
-    def _create_tables(self, conn: sqlite3.Connection) -> None:
+    def create_tables(self, conn: sqlite3.Connection) -> None:
         """テーブル作成"""
         
         # サイト基本情報テーブル
@@ -209,9 +195,9 @@ class SelectorDatabase:
         """)
         
         # インデックス作成
-        self._create_indexes(conn)
+        self.create_indexes(conn)
     
-    def _create_indexes(self, conn: sqlite3.Connection) -> None:
+    def create_indexes(self, conn: sqlite3.Connection) -> None:
         """インデックス作成"""
         indexes = [
             "CREATE INDEX IF NOT EXISTS idx_selectors_site_type ON selectors(site_id, selector_type)",
@@ -224,7 +210,7 @@ class SelectorDatabase:
         for index_sql in indexes:
             conn.execute(index_sql)
     
-    def _insert_default_global_settings(self, conn: sqlite3.Connection) -> None:
+    def insert_default_global_settings(self, conn: sqlite3.Connection) -> None:
         """デフォルトグローバル設定の投入"""
         default_settings = [
             {
@@ -265,6 +251,27 @@ class SelectorDatabase:
             VALUES (?, ?, ?, ?)
             """, (setting['setting_key'], setting['setting_value'], 
                   setting['setting_type'], setting['description']))
+
+
+class SelectorRepository:
+    """セレクタリポジトリクラス"""
+    
+    def __init__(self, db_path: Path, logger: logging.Logger):
+        """
+        リポジトリ初期化
+        
+        Args:
+            db_path: データベースファイルパス
+            logger: ロガーインスタンス
+        """
+        self.db_path = db_path
+        self.logger = logger
+    
+    def _get_connection(self) -> sqlite3.Connection:
+        """データベース接続取得"""
+        conn = sqlite3.connect(self.db_path)
+        conn.row_factory = sqlite3.Row  # 辞書形式でアクセス可能
+        return conn
     
     # ====== サイト管理メソッド ======
     
@@ -547,8 +554,27 @@ class SelectorDatabase:
             
         self.logger.info(f"セレクタ削除: ID {selector_id}, Success: {success}")
         return success
+
+
+class BackupManager:
+    """バックアップ管理クラス"""
     
-    # ====== バックアップ管理メソッド ======
+    def __init__(self, db_path: Path, logger: logging.Logger):
+        """
+        バックアップマネージャー初期化
+        
+        Args:
+            db_path: データベースファイルパス
+            logger: ロガーインスタンス
+        """
+        self.db_path = db_path
+        self.logger = logger
+    
+    def _get_connection(self) -> sqlite3.Connection:
+        """データベース接続取得"""
+        conn = sqlite3.connect(self.db_path)
+        conn.row_factory = sqlite3.Row  # 辞書形式でアクセス可能
+        return conn
     
     def create_backup(self, backup_name: str = None) -> str:
         """
@@ -649,6 +675,119 @@ class SelectorDatabase:
         except Exception as e:
             self.logger.error(f"バックアップ復旧エラー: {e}")
             return False
+
+
+class SelectorDatabase:
+    """セレクタデータベース管理クラス（オーケストレーター）"""
+    
+    SCHEMA_VERSION = "1.0.0"
+    
+    def __init__(self, db_path: str = "config/selectors.db"):
+        """
+        データベース初期化
+        
+        Args:
+            db_path: データベースファイルパス
+        """
+        self.db_path = Path(db_path)
+        self.db_path.parent.mkdir(parents=True, exist_ok=True)
+        
+        self.logger = self._setup_logger()
+        
+        # 各コンポーネントを初期化
+        self.schema_manager = DatabaseSchemaManager(self.db_path, self.logger)
+        self.repository = SelectorRepository(self.db_path, self.logger)
+        self.backup_manager = BackupManager(self.db_path, self.logger)
+        
+        # データベース初期化
+        self.schema_manager.initialize_database()
+    
+    def _setup_logger(self) -> logging.Logger:
+        """ロガー設定"""
+        logger = logging.getLogger(f"{__name__}.SelectorDatabase")
+        logger.setLevel(logging.INFO)
+        if not logger.handlers:
+            handler = logging.StreamHandler()
+            formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+            handler.setFormatter(formatter)
+            logger.addHandler(handler)
+        return logger
+    
+    def _get_connection(self) -> sqlite3.Connection:
+        """データベース接続取得（後方互換性のため）"""
+        conn = sqlite3.connect(self.db_path)
+        conn.row_factory = sqlite3.Row  # 辞書形式でアクセス可能
+        return conn
+    
+    # ====== 後方互換性のためのラッパーメソッド ======
+    
+    # スキーマ管理関連
+    def _initialize_database(self) -> None:
+        """データベース初期化（後方互換性）"""
+        self.schema_manager.initialize_database()
+    
+    def _create_tables(self, conn: sqlite3.Connection) -> None:
+        """テーブル作成（後方互換性）"""
+        self.schema_manager.create_tables(conn)
+    
+    def _create_indexes(self, conn: sqlite3.Connection) -> None:
+        """インデックス作成（後方互換性）"""
+        self.schema_manager.create_indexes(conn)
+    
+    def _insert_default_global_settings(self, conn: sqlite3.Connection) -> None:
+        """デフォルトグローバル設定の投入（後方互換性）"""
+        self.schema_manager.insert_default_global_settings(conn)
+    
+    # サイト管理関連
+    def add_site(self, site_data: Dict[str, Any]) -> int:
+        """サイト追加"""
+        return self.repository.add_site(site_data)
+    
+    def update_site(self, site_id: int, site_data: Dict[str, Any]) -> bool:
+        """サイト更新"""
+        return self.repository.update_site(site_id, site_data)
+    
+    def get_site(self, site_key: str) -> Optional[Dict[str, Any]]:
+        """サイト情報取得"""
+        return self.repository.get_site(site_key)
+    
+    def list_sites(self, status: str = 'active') -> List[Dict[str, Any]]:
+        """サイト一覧取得"""
+        return self.repository.list_sites(status)
+    
+    def delete_site(self, site_id: int) -> bool:
+        """サイト削除"""
+        return self.repository.delete_site(site_id)
+    
+    # セレクタ管理関連
+    def add_selector(self, site_id: int, selector_data: Dict[str, Any]) -> int:
+        """セレクタ追加"""
+        return self.repository.add_selector(site_id, selector_data)
+    
+    def update_selector(self, selector_id: int, new_value: str, reason: str = None) -> bool:
+        """セレクタ更新"""
+        return self.repository.update_selector(selector_id, new_value, reason)
+    
+    def get_selectors(self, site_id: int, selector_type: str = None) -> List[Dict[str, Any]]:
+        """セレクタ一覧取得"""
+        return self.repository.get_selectors(site_id, selector_type)
+    
+    def delete_selector(self, selector_id: int, reason: str = None) -> bool:
+        """セレクタ削除（論理削除）"""
+        return self.repository.delete_selector(selector_id, reason)
+    
+    # バックアップ管理関連
+    def create_backup(self, backup_name: str = None) -> str:
+        """データベースバックアップ作成"""
+        return self.backup_manager.create_backup(backup_name)
+    
+    def list_backups(self) -> List[Dict[str, Any]]:
+        """バックアップ一覧取得"""
+        return self.backup_manager.list_backups()
+    
+    def restore_backup(self, backup_id: int) -> bool:
+        """バックアップから復旧"""
+        return self.backup_manager.restore_backup(backup_id)
 
 
 if __name__ == "__main__":

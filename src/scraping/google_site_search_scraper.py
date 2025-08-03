@@ -77,70 +77,25 @@ class GoogleSiteSearchScraper(RequestsScraper):
             return None
     
     def _generate_search_queries(self, book_title: str) -> List[str]:
-        """Google検索クエリ生成"""
-        queries = []
+        """Google検索クエリ生成 - 統合検索戦略ユーティリティを使用"""
+        from .utils.title_processing import SearchStrategies
         
-        # 基本クエリ
-        base_title = self.normalize_title(book_title)
-        queries.append(f'site:{self.target_site} "{base_title}"')
-        
-        # 部分検索
-        if len(base_title) > 10:
-            words = base_title.split()
-            if len(words) >= 2:
-                main_part = ' '.join(words[:2])
-                queries.append(f'site:{self.target_site} "{main_part}"')
-        
-        # 巻数バリエーション
-        volume_variants = self._create_volume_variants(book_title)
-        for variant in volume_variants[:2]:  # 上位2個まで
-            queries.append(f'site:{self.target_site} "{variant}"')
-        
-        # シリーズ名のみ
-        series_name = self._extract_series_name(book_title)
-        if series_name != book_title and len(series_name) > 5:
-            queries.append(f'site:{self.target_site} "{series_name}"')
-        
-        return queries[:4]  # 最大4クエリ
+        # 共通検索戦略を使用してサイト固有クエリを生成
+        return SearchStrategies.generate_site_queries(
+            book_title, 
+            self.target_site,
+            max_queries=4
+        )  # 最大4クエリ
     
     def _create_volume_variants(self, title: str) -> List[str]:
-        """巻数バリエーション生成"""
-        variants = []
-        
-        circle_to_variants = {
-            '①': ['1', '第1巻', '(1)'],
-            '②': ['2', '第2巻', '(2)'],
-            '③': ['3', '第3巻', '(3)'],
-            '④': ['4', '第4巻', '(4)'],
-            '⑤': ['5', '第5巻', '(5)'],
-        }
-        
-        for circle, replacements in circle_to_variants.items():
-            if circle in title:
-                for replacement in replacements:
-                    variants.append(title.replace(circle, replacement))
-                break  # 最初の巻数マッチのみ
-        
-        return variants
+        """巻数バリエーション生成 - 統合タイトル処理ユーティリティを使用"""
+        from .utils.title_processing import TitleProcessor
+        return TitleProcessor.create_volume_variants(title)
     
     def _extract_series_name(self, title: str) -> str:
-        """シリーズ名抽出"""
-        patterns = [
-            r'[①-⑳]',
-            r'第\\d+巻',
-            r'\\d+巻',
-            r'\\(\\d+\\)',
-            r'[１２３４５６７８９０]+',
-            r'[上中下]',
-            r'前編|後編|完結編',
-            r'【[^】]*】',
-        ]
-        
-        series_name = title
-        for pattern in patterns:
-            series_name = re.sub(pattern, '', series_name).strip()
-        
-        return series_name if series_name else title
+        """シリーズ名の抽出 - 統合検索戦略ユーティリティを使用"""
+        from .utils.title_processing import SearchStrategies
+        return SearchStrategies._extract_series_name(title)
     
     async def _perform_google_search(self, query: str) -> Optional[str]:
         """実際のGoogle検索実行"""

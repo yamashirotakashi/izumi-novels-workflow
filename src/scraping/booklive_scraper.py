@@ -66,43 +66,14 @@ class BookLiveScraper(RequestsScraper):
         return list(variants)[:7]  # 最大7つに制限
     
     def _create_volume_variants_booklive(self, title: str) -> List[str]:
-        """巻数バリエーション生成"""
-        variants = []
-        
-        # 丸数字マッピング
-        circle_to_variants = {
-            '①': ['1', '第1巻', '(1)', ' 1', '１'],
-            '②': ['2', '第2巻', '(2)', ' 2', '２'],
-            '③': ['3', '第3巻', '(3)', ' 3', '３'],
-            '④': ['4', '第4巻', '(4)', ' 4', '４'],
-            '⑤': ['5', '第5巻', '(5)', ' 5', '５'],
-        }
-        
-        for circle, replacements in circle_to_variants.items():
-            if circle in title:
-                for replacement in replacements:
-                    variants.append(title.replace(circle, replacement))
-        
-        return variants
+        """巻数バリエーション生成 - 統合タイトル処理ユーティリティを使用"""
+        from .utils.title_processing import TitleProcessor
+        return TitleProcessor.create_volume_variants(title)
     
     def _extract_series_name(self, title: str) -> str:
-        """シリーズ名の抽出"""  
-        patterns = [
-            r'[①-⑳]',
-            r'第\d+巻',
-            r'\d+巻',
-            r'\(\d+\)',
-            r'[１２３４５６７８９０]+',
-            r'[上中下]',
-            r'前編|後編|完結編',
-            r'【[^】]*】',
-        ]
-        
-        series_name = title
-        for pattern in patterns:
-            series_name = re.sub(pattern, '', series_name).strip()
-        
-        return series_name if series_name else title
+        """シリーズ名の抽出 - 統合検索戦略ユーティリティを使用"""
+        from .utils.title_processing import SearchStrategies
+        return SearchStrategies._extract_series_name(title)
     
     async def _search_impl(self, book_title: str, n_code: str) -> Optional[str]:
         """BookLive検索の実装"""

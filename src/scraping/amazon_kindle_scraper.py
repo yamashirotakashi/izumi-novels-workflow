@@ -10,7 +10,7 @@ from urllib.parse import quote_plus, urlparse, parse_qs, urlencode
 import re
 
 from playwright.async_api import TimeoutError as PlaywrightTimeout
-from .base_scraper import BaseScraper, CaptchaError, NoResultError
+from base_scraper import BaseScraper, CaptchaError, NoResultError
 
 logger = logging.getLogger(__name__)
 

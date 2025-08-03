@@ -19,7 +19,7 @@ from src.scraping.amazon_kindle_scraper import AmazonKindleScraper
 from src.scraping.rakuten_kobo_scraper import RakutenKoboScraper
 from src.scraping.google_play_books_scraper import GooglePlayBooksScraper
 from src.scraping.bookwalker_scraper import BookWalkerScraper
-from src.scraping.google_sheets_client_updated import GoogleSheetsClient, SalesLinkUpdate, SalesChannel
+from src.scraping.google_sheets_client_consolidated import GoogleSheetsClient, SalesLinkUpdate, SalesChannel
 from src.scraping.result_exporter import ResultExporter, BatchResult, ScrapingResult, ResultStatus, ExportFormat
 from src.scraping.error_handler import ErrorHandler, RetryConfig
 

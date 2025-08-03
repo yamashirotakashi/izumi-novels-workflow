@@ -10,6 +10,7 @@ from urllib.parse import quote
 from playwright.async_api import Page, TimeoutError as PlaywrightTimeoutError
 
 from .base_scraper import BaseScraper
+from .utils.title_processing import TitleProcessor
 
 logger = logging.getLogger(__name__)
 
@@ -92,40 +93,9 @@ class BookWalkerScraper(BaseScraper):
         return variants[:5]  # 上位5つに制限
     
     def _create_volume_variants_bookwalker(self, title: str) -> List[str]:
-        """BOOK☆WALKER用巻数バリエーション生成"""
-        variants = []
-        
-        # 丸数字→第X巻
-        circle_to_volume = {
-            '①': '第1巻', '②': '第2巻', '③': '第3巻', '④': '第4巻', '⑤': '第5巻',
-            '⑥': '第6巻', '⑦': '第7巻', '⑧': '第8巻', '⑨': '第9巻', '⑩': '第10巻',
-            '⑪': '第11巻', '⑫': '第12巻', '⑬': '第13巻', '⑭': '第14巻', '⑮': '第15巻',
-            '⑯': '第16巻', '⑰': '第17巻', '⑱': '第18巻', '⑲': '第19巻', '⑳': '第20巻'
-        }
-        
-        for circle, volume in circle_to_volume.items():
-            if circle in title:
-                # 第X巻形式
-                variants.append(title.replace(circle, volume))
-                # X巻形式
-                variants.append(title.replace(circle, volume.replace('第', '')))
-                # (X)形式
-                volume_num = volume.replace('第', '').replace('巻', '')
-                variants.append(title.replace(circle, f'({volume_num})'))
-        
-        # 第X巻→丸数字
-        volume_pattern = re.compile(r'第(\d+)巻')
-        match = volume_pattern.search(title)
-        if match:
-            volume_num = int(match.group(1))
-            if 1 <= volume_num <= 20:
-                circle_nums = ['①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧', '⑨', '⑩',
-                               '⑪', '⑫', '⑬', '⑭', '⑮', '⑯', '⑰', '⑱', '⑲', '⑳']
-                if volume_num <= len(circle_nums):
-                    circle_variant = title.replace(match.group(0), circle_nums[volume_num - 1])
-                    variants.append(circle_variant)
-        
-        return variants
+        """BOOK☆WALKER用巻数バリエーション生成 - 統合タイトル処理ユーティリティを使用"""
+        from .utils.title_processing import TitleProcessor
+        return TitleProcessor.create_volume_variants(title)
     
     def _extract_series_name(self, title: str) -> str:
         """シリーズ名の抽出（巻数を除去）"""
@@ -340,40 +310,9 @@ class BookWalkerScraper(BaseScraper):
         return text.translate(translation_table)
     
     def extract_volume_number(self, title: str) -> int:
-        """巻数抽出（BOOK☆WALKER対応版）"""
-        if not title:
-            return 1
-        
-        # 丸数字パターン
-        circle_numbers = {
-            '①': 1, '②': 2, '③': 3, '④': 4, '⑤': 5,
-            '⑥': 6, '⑦': 7, '⑧': 8, '⑨': 9, '⑩': 10,
-            '⑪': 11, '⑫': 12, '⑬': 13, '⑭': 14, '⑮': 15,
-            '⑯': 16, '⑰': 17, '⑱': 18, '⑲': 19, '⑳': 20
-        }
-        
-        for circle, number in circle_numbers.items():
-            if circle in title:
-                return number
-        
-        # 全角数字パターン
-        zenkaku_numbers = {
-            '１': 1, '２': 2, '３': 3, '４': 4, '５': 5,
-            '６': 6, '７': 7, '８': 8, '９': 9, '１０': 10
-        }
-        
-        for zenkaku, number in zenkaku_numbers.items():
-            if zenkaku in title:
-                return number
-        
-        # カッコ内数字パターン  
-        import re
-        paren_match = re.search(r'[（(](\d+)[）)]', title)
-        if paren_match:
-            return int(paren_match.group(1))
-        
-        # 基本パターンは親クラスに委譲
-        return super().extract_volume_number(title)
+        """巻数抽出（BOOK☆WALKER対応版）- 統合タイトル処理ユーティリティに委譲"""
+        volume = TitleProcessor.extract_volume_number(title)
+        return volume if volume is not None else 1
     
     async def _search_impl(self, book_title: str, n_code: str) -> Optional[str]:
         """BOOK☆WALKER検索の実装"""

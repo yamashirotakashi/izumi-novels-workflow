@@ -224,7 +224,7 @@ GOOGLE_SHEETS_SPREADSHEET_ID=your_spreadsheet_id_here
 # scripts/test_google_sheets.py
 import os
 from dotenv import load_dotenv
-from src.scraping.google_sheets_client import GoogleSheetsClient
+from src.scraping.google_sheets_client_consolidated import GoogleSheetsClient
 
 # 環境変数の読み込み
 load_dotenv()

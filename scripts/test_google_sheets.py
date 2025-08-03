@@ -14,7 +14,7 @@ import logging
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from src.scraping.google_sheets_client import (
+from src.scraping.google_sheets_client_consolidated import (
     GoogleSheetsClient, 
     BookMaster, 
     SalesLinkRecord,

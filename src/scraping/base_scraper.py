@@ -14,7 +14,9 @@ import json
 from pathlib import Path
 
 from playwright.async_api import Page, Browser, async_playwright, TimeoutError as PlaywrightTimeout
-import editdistance
+
+# Import unified title processing utility
+from .utils.title_processing import TitleProcessor
 
 logger = logging.getLogger(__name__)
 
@@ -272,27 +274,15 @@ class BaseScraper(ABC):
     @staticmethod
     def normalize_title(title: str) -> str:
         """
-        タイトルの正規化
+        タイトルの正規化 - 統合タイトル処理ユーティリティに委譲
         
         全角・半角統一、記号除去、スペース正規化など
         """
-        # Unicode正規化
-        title = unicodedata.normalize('NFKC', title)
-        
-        # 記号の除去
-        title = re.sub(r'[【】\[\]（）\(\)「」『』《》〈〉]', '', title)
-        
-        # 連続するスペースを単一スペースに
-        title = re.sub(r'\s+', ' ', title)
-        
-        # 前後の空白を除去
-        title = title.strip()
-        
-        return title.lower()
+        return TitleProcessor.normalize_title(title)
     
     def is_title_match(self, expected: str, actual: str, threshold: float = 0.85) -> bool:
         """
-        タイトルのマッチング判定
+        タイトルのマッチング判定 - 統合タイトル処理ユーティリティに委譲
         
         Args:
             expected: 期待されるタイトル
@@ -302,64 +292,22 @@ class BaseScraper(ABC):
         Returns:
             マッチするかどうか
         """
-        # 正規化
-        expected_norm = self.normalize_title(expected)
-        actual_norm = self.normalize_title(actual)
-        
-        # 完全一致
-        if expected_norm == actual_norm:
-            return True
-        
-        # 部分一致（期待タイトルが実際のタイトルに含まれる）
-        if expected_norm in actual_norm:
-            return True
-        
-        # 編集距離による類似度計算
-        max_len = max(len(expected_norm), len(actual_norm))
-        if max_len == 0:
-            return False
-        
-        distance = editdistance.eval(expected_norm, actual_norm)
-        similarity = 1 - (distance / max_len)
-        
-        return similarity >= threshold
+        return TitleProcessor.is_title_match(expected, actual, threshold)
+    
+    # Levenshtein distance calculation moved to TitleProcessor utility
     
     def extract_volume_number(self, title: str) -> Optional[int]:
         """
-        タイトルから巻数を抽出
+        タイトルから巻数を抽出 - 統合タイトル処理ユーティリティに委譲
         
         Returns:
             巻数（抽出できない場合はNone）
         """
-        patterns = [
-            r'第(\d+)巻',
-            r'(\d+)巻',
-            r'[①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳]',
-            r'[\(（](\d+)[\)）]',
-            r'vol\.?\s*(\d+)',
-            r'volume\s*(\d+)'
-        ]
-        
-        for pattern in patterns:
-            match = re.search(pattern, title, re.IGNORECASE)
-            if match:
-                # 丸数字の変換
-                if pattern == r'[①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳]':
-                    circled_nums = '①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳'
-                    num_char = match.group(0)
-                    try:
-                        return circled_nums.index(num_char) + 1
-                    except ValueError:
-                        logger.warning(f"Unknown circled number: {num_char}")
-                        return None
-                else:
-                    return int(match.group(1))
-        
-        return None
+        return TitleProcessor.extract_volume_number(title)
     
     def normalize_volume_notation(self, title: str, target_format: str = 'circled') -> str:
         """
-        巻数表記を統一形式に変換
+        巻数表記を統一形式に変換 - 統合タイトル処理ユーティリティに委譲
         
         Args:
             title: 変換対象のタイトル
@@ -368,68 +316,16 @@ class BaseScraper(ABC):
         Returns:
             統一形式に変換されたタイトル
         """
-        volume = self.extract_volume_number(title)
-        if volume is None:
-            return title
-        
-        # 現在の巻数表記を除去
-        cleaned_title = re.sub(r'[①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳]', '', title)
-        cleaned_title = re.sub(r'第?\d+巻', '', cleaned_title)
-        cleaned_title = re.sub(r'[\(（]\d+[\)）]', '', cleaned_title)
-        cleaned_title = re.sub(r'\s*\d+\s*$', '', cleaned_title)  # 末尾の数字
-        cleaned_title = re.sub(r'vol\.?\s*\d+', '', cleaned_title, flags=re.IGNORECASE)
-        cleaned_title = re.sub(r'volume\s*\d+', '', cleaned_title, flags=re.IGNORECASE)
-        cleaned_title = cleaned_title.strip()
-        
-        # 目的の形式に変換
-        circled_nums = '①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳'
-        
-        if target_format == 'circled' and 1 <= volume <= 20:
-            return f"{cleaned_title}{circled_nums[volume-1]}"
-        elif target_format == 'arabic':
-            return f"{cleaned_title} {volume}"
-        elif target_format == 'kanji':
-            return f"{cleaned_title} 第{volume}巻"
-        elif target_format == 'paren':
-            return f"{cleaned_title}({volume})"
-        else:
-            return title
+        return TitleProcessor.normalize_volume_notation(title, target_format)
     
     def create_volume_variants(self, title: str) -> List[str]:
         """
-        タイトルの巻数表記バリエーションを生成
+        タイトルの巻数表記バリエーションを生成 - 統合タイトル処理ユーティリティに委譲
         
         Returns:
             異なる巻数表記のタイトルリスト
         """
-        volume = self.extract_volume_number(title)
-        if volume is None:
-            return [title]
-        
-        variants = []
-        formats = ['circled', 'arabic', 'kanji', 'paren']
-        
-        for fmt in formats:
-            variant = self.normalize_volume_notation(title, fmt)
-            if variant not in variants:
-                variants.append(variant)
-        
-        # 追加のバリエーション
-        cleaned_title = re.sub(r'[①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳]', '', title)
-        cleaned_title = re.sub(r'第?\d+巻', '', cleaned_title)
-        cleaned_title = re.sub(r'[\(（]\d+[\)）]', '', cleaned_title)
-        cleaned_title = re.sub(r'\s*\d+\s*$', '', cleaned_title)
-        cleaned_title = cleaned_title.strip()
-        
-        # スペースなしバージョン
-        variants.append(f"{cleaned_title}{volume}")
-        
-        # 全角数字バージョン
-        zenkaku_nums = '０１２３４５６７８９'
-        if 0 <= volume <= 9:
-            variants.append(f"{cleaned_title}{zenkaku_nums[volume]}")
-        
-        return list(dict.fromkeys(variants))  # 重複除去
+        return TitleProcessor.create_volume_variants(title)
     
     def get_stats(self) -> Dict[str, Any]:
         """統計情報を取得"""

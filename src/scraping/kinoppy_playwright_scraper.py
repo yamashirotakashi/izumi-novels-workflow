@@ -455,23 +455,9 @@ class KinoppyPlaywrightScraper(BaseScraper):
         return list(variants)[:5]  # 上位5個まで
     
     def _extract_series_name(self, title: str) -> str:
-        """シリーズ名抽出"""
-        patterns = [
-            r'[①-⑳]',
-            r'第\\d+巻',
-            r'\\d+巻',
-            r'\\(\\d+\\)',
-            r'[１２３４５６７８９０]+',
-            r'[上中下]',
-            r'前編|後編|完結編',
-            r'【[^】]*】',
-        ]
-        
-        series_name = title
-        for pattern in patterns:
-            series_name = re.sub(pattern, '', series_name).strip()
-        
-        return series_name if series_name else title
+        """シリーズ名の抽出 - 統合検索戦略ユーティリティを使用"""
+        from .utils.title_processing import SearchStrategies
+        return SearchStrategies._extract_series_name(title)
     
     async def _verify_url(self, url: str, expected_title: str) -> bool:
         """URL検証（Playwright版）"""

@@ -1,176 +1,154 @@
 """
-BOOK☆WALKER 高度スクレイパー
-親要素からのタイトル抽出とコンテキスト解析
+BOOK☆WALKER 高度ブラウザ自動化スクレイパー（リファクタリング版）
+selenium_common基盤を使用した重複コード排除版
 """
 import asyncio
 import re
 import logging
 from typing import Optional, List, Dict, Any
-from urllib.parse import quote
-from bs4 import BeautifulSoup, Tag
+from bs4 import BeautifulSoup
 
-from .requests_scraper import RequestsScraper
+from .selenium_common import BaseBrowserManager, HumanBehavior
 
 logger = logging.getLogger(__name__)
 
 
-class BookWalkerAdvancedScraper(RequestsScraper):
-    """BOOK☆WALKER 高度解析版スクレイパー"""
+class BookWalkerAdvancedScraper(BaseBrowserManager):
+    """BOOK☆WALKER 高度ブラウザ自動化スクレイパー（リファクタリング版）"""
     
-    SITE_NAME = "BOOK☆WALKER"
-    BASE_URL = "https://bookwalker.jp"
-    SEARCH_URL = "https://bookwalker.jp/search/"
+    def __init__(self, headless: bool = True, timeout: int = 30):
+        super().__init__(
+            site_name="bookwalker_advanced",
+            base_url="https://bookwalker.jp",
+            search_url="https://bookwalker.jp/search/",
+            headless=headless,
+            timeout=timeout
+        )
     
-    def __init__(self, timeout: int = 10, max_retries: int = 3):
-        super().__init__(timeout, max_retries, delay_between_requests=1.0)
-        
-    def _get_search_strategies(self, title: str, n_code: str = "") -> List[Dict[str, Any]]:
-        """検索戦略リストの生成"""
-        strategies = []
-        
-        # タイトルのバリエーション生成
-        title_variants = self._create_bookwalker_title_variants(title)
-        
-        # より具体的なタイトルも追加
-        if '④' in title:
-            # 丸数字を他の形式にも変換
-            title_variants.append(title.replace('④', '4'))
-            title_variants.append(title.replace('④', ' 4'))
-            title_variants.append(title.replace('④', '第4巻'))
-        
-        for i, variant in enumerate(title_variants):
-            strategies.append({
-                'query': variant,
-                'description': f'タイトル検索 (バリエーション {i+1})',
-                'params': {
-                    'word': variant
-                }
-            })
-        
-        return strategies
+    async def search_book(self, book_title: str, n_code: str = "") -> Optional[str]:
+        """書籍検索のメイン処理（リファクタリング版）"""
+        try:
+            logger.info(f"BOOK☆WALKER検索開始: {book_title} ({n_code})")
+            
+            # 検索ページに移動（共通基盤使用）
+            await self.navigate_to_search_page()
+            
+            # タイトルバリエーション生成
+            title_variants = self.create_title_variants(book_title)
+            
+            for i, variant in enumerate(title_variants):
+                logger.debug(f"検索バリエーション {i+1}/{len(title_variants)}: '{variant}'")
+                
+                try:
+                    # 検索実行（共通基盤使用）
+                    search_success = await self.perform_search(variant)
+                    if not search_success:
+                        continue
+                    
+                    # 結果読み込み待機（共通基盤使用）
+                    await self.wait_for_search_results()
+                    
+                    # 結果解析
+                    result = await self._extract_bookwalker_search_results(variant)
+                    if result:
+                        logger.info(f"BOOK☆WALKER検索成功: {book_title} -> {result}")
+                        return result
+                        
+                    # 戦略間待機（人間らしい間隔）
+                    if i < len(title_variants) - 1:
+                        await self.human_simulator.human_pause(2.0, 4.0)
+                        
+                except Exception as e:
+                    logger.warning(f"検索バリエーション失敗 '{variant}': {str(e)}")
+                    continue
+            
+            logger.warning(f"BOOK☆WALKER検索失敗: {book_title}")
+            return None
+            
+        except Exception as e:
+            logger.error(f"BOOK☆WALKER検索エラー: {book_title} - {str(e)}")
+            return None
     
-    def _create_bookwalker_title_variants(self, title: str) -> List[str]:
-        """BOOK☆WALKER用タイトルバリエーション生成（強化版）"""
-        variants = set()  # 重複を自動除去するためsetを使用
+    def create_title_variants(self, title: str) -> List[str]:
+        """BOOK☆WALKER用タイトルバリエーション生成（リファクタリング版）"""
+        variants = set()
         
         # 基本正規化
         base_title = self.normalize_title(title)
         variants.add(base_title)
-        variants.add(title)  # 元のタイトルも追加
+        variants.add(title)
         
-        # ☆文字のバリエーション
+        # ☆文字のバリエーション（BOOK☆WALKER特有）
         if '☆' in title:
             variants.add(title.replace('☆', '*'))
             variants.add(title.replace('☆', ''))
         
-        # 巻数表記のバリエーション
-        volume_variants = self._create_volume_variants_bookwalker(title)
-        variants.update(volume_variants)
-        
-        # 部分タイトル（巻数なし）
-        series_only = self._extract_series_name(title)
-        if series_only != title:
-            variants.add(series_only)
-        
-        # 空文字削除
-        variants = {v for v in variants if v.strip()}
-        
-        return list(variants)[:7]  # 最大7つに制限
-    
-    def _create_volume_variants_bookwalker(self, title: str) -> List[str]:
-        """巻数バリエーション生成（強化版）"""
-        variants = []
-        
-        # 丸数字マッピング（拡張）
+        # 巻数表記のバリエーション（拡張版）
         circle_to_variants = {
             '①': ['1', '第1巻', '(1)', ' 1', '１'],
             '②': ['2', '第2巻', '(2)', ' 2', '２'],
             '③': ['3', '第3巻', '(3)', ' 3', '３'],
             '④': ['4', '第4巻', '(4)', ' 4', '４'],
             '⑤': ['5', '第5巻', '(5)', ' 5', '５'],
+            '⑥': ['6', '第6巻', '(6)', ' 6', '６'],
+            '⑦': ['7', '第7巻', '(7)', ' 7', '７'],
         }
         
         for circle, replacements in circle_to_variants.items():
             if circle in title:
                 for replacement in replacements:
-                    variants.append(title.replace(circle, replacement))
+                    variants.add(title.replace(circle, replacement))
         
-        return variants
+        # シリーズ名のみ
+        series_only = self._extract_bookwalker_series_name(title)
+        if series_only != title and len(series_only) > 3:
+            variants.add(series_only)
+        
+        # 空文字削除・重複除去
+        variants = {v for v in variants if v.strip()}
+        return list(variants)[:7]  # 上位7個まで
     
-    def _extract_series_name(self, title: str) -> str:
-        """シリーズ名の抽出（強化版）"""  
-        patterns = [
-            r'[①-⑳]',
-            r'第\d+巻',
-            r'\d+巻',
-            r'\(\d+\)',
-            r'[１２３４５６７８９０]+',
-            r'[上中下]',
-            r'前編|後編|完結編',
-            r'【[^】]*】',
-        ]
-        
-        series_name = title
-        for pattern in patterns:
-            series_name = re.sub(pattern, '', series_name).strip()
-        
-        return series_name if series_name else title
-    
-    async def _search_impl(self, book_title: str, n_code: str) -> Optional[str]:
-        """BOOK☆WALKER検索の実装（高度版）"""
+    async def _extract_bookwalker_search_results(self, query: str) -> Optional[str]:
+        """BOOK☆WALKER検索結果の抽出（リファクタリング版）"""
         try:
-            search_strategies = self._get_search_strategies(book_title, n_code)
+            # ページソース取得（共通基盤使用）
+            soup = self.get_page_soup()
             
-            for i, strategy in enumerate(search_strategies, 1):
-                logger.debug(f"検索戦略 {i}/{len(search_strategies)}: {strategy['description']} - '{strategy['query']}'")
-                
-                url = await self._try_search_strategy(strategy)
-                if url:
-                    return url
-                
-                if i < len(search_strategies):
-                    await asyncio.sleep(0.3)
+            # BOOK☆WALKER特有のセレクタとURLパターン
+            bookwalker_selectors = [
+                '.book-item',
+                '.product-item',
+                '.search-result-item',
+                'article',
+                '.item',
+                'div[class*="book"]',
+                'div[class*="item"]',
+                'div[class*="product"]',
+                'div[class*="card"]'
+            ]
             
-            return None
+            bookwalker_url_patterns = ['/de/', '/series/', '/book/']
             
-        except Exception as e:
-            logger.error(f"検索実装エラー: {book_title} - {str(e)}")
-            return None
-    
-    async def _try_search_strategy(self, strategy: Dict[str, Any]) -> Optional[str]:
-        """個別検索戦略の実行（高度版）"""
-        try:
-            soup = await self.make_request(self.SEARCH_URL, params=strategy['params'])
-            if not soup:
+            # 書籍コンテナ発見（共通基盤使用）
+            result_containers = self.find_book_containers(
+                soup, 
+                custom_selectors=bookwalker_selectors,
+                url_patterns=bookwalker_url_patterns
+            )
+            
+            if not result_containers:
+                logger.debug(f"BOOK☆WALKER検索結果コンテナが見つかりません: {query}")
                 return None
             
-            # 高度な検索結果抽出
-            best_match = await self._advanced_find_best_match(soup, strategy['query'])
-            return best_match
-            
-        except Exception as e:
-            logger.warning(f"検索戦略失敗 ({strategy['description']}): {str(e)}")
-            return None
-    
-    async def _advanced_find_best_match(self, soup: BeautifulSoup, query: str) -> Optional[str]:
-        """高度な最適マッチ検索"""
-        try:
-            # Step 1: 書籍コンテナを探す
-            book_containers = self._find_book_containers(soup)
-            
-            if not book_containers:
-                logger.debug("書籍コンテナが見つかりません")
-                return None
-            
-            logger.debug(f"{len(book_containers)} 個の書籍コンテナを発見")
+            logger.debug(f"BOOK☆WALKER検索結果コンテナ数: {len(result_containers)}")
             
             best_match = None
             best_score = 0
             
-            for i, container in enumerate(book_containers[:20]):
+            for i, container in enumerate(result_containers[:20]):
                 try:
-                    # コンテナから書籍情報を抽出
-                    book_info = self._extract_book_info_from_container(container)
+                    # 書籍情報抽出
+                    book_info = self.extract_book_info(container)
                     
                     if not book_info or not book_info.get('title') or not book_info.get('url'):
                         continue
@@ -181,100 +159,44 @@ class BookWalkerAdvancedScraper(RequestsScraper):
                     # スコア計算
                     score = self.calculate_similarity_score(query, title)
                     
-                    # 追加ボーナス
-                    if 'de/' in url:  # 書籍詳細ページ
+                    # BOOK☆WALKER特有のボーナス
+                    if '/de/' in url:  # 書籍詳細ページ
                         score += 0.15
                     if len(title) > 5:  # 十分な長さのタイトル
                         score += 0.05
                     
-                    logger.debug(f"書籍 {i+1}: '{title[:50]}...' -> スコア {score:.3f}")
+                    logger.debug(f"BOOK☆WALKER書籍候補 {i+1}: '{title[:50]}...' -> スコア {score:.3f}")
                     
                     if score > best_score and score >= 0.15:  # より低い閾値
                         best_match = url
                         best_score = score
                         
                 except Exception as e:
-                    logger.warning(f"コンテナ処理エラー: {str(e)}")
+                    logger.warning(f"BOOK☆WALKER書籍情報抽出エラー: {str(e)}")
                     continue
             
             if best_match:
-                logger.info(f"最適マッチ発見 (スコア: {best_score:.3f}): {best_match}")
+                logger.info(f"BOOK☆WALKER最適マッチ発見 (スコア: {best_score:.3f}): {best_match}")
                 return best_match
             else:
-                logger.warning(f"クエリ '{query}' に対する適切なマッチが見つかりませんでした")
+                logger.warning(f"BOOK☆WALKER適切なマッチが見つかりませんでした: {query}")
                 return None
             
         except Exception as e:
-            logger.error(f"高度マッチング処理エラー: {str(e)}")
+            logger.error(f"BOOK☆WALKER検索結果抽出エラー: {str(e)}")
             return None
     
-    def _find_book_containers(self, soup: BeautifulSoup) -> List[Tag]:
-        """書籍コンテナ要素を発見"""
-        container_selectors = [
-            # 一般的なコンテナパターン
-            '.book-item',
-            '.product-item',
-            '.search-result-item',
-            'article',
-            '.item',
-            
-            # より広範囲な検索
-            'div[class*="book"]',
-            'div[class*="item"]',
-            'div[class*="product"]',
-            'div[class*="card"]',
-            
-            # リンクを含む要素の親
-            '*:has(a[href*="/de"])',
-            '*:has(a[href*="/series"])',
-        ]
-        
-        all_containers = []
-        
-        for selector in container_selectors:
-            try:
-                if ':has(' in selector:
-                    # :has() 疑似クラスは手動実装
-                    link_elements = soup.select('a[href*="/de"], a[href*="/series"]')
-                    for link in link_elements:
-                        parent = link.parent
-                        if parent and parent not in all_containers:
-                            all_containers.append(parent)
-                else:
-                    containers = soup.select(selector)
-                    all_containers.extend(containers)
-            except Exception as e:
-                logger.debug(f"セレクタエラー {selector}: {e}")
-                continue
-        
-        # 重複除去とフィルタリング
-        unique_containers = []
-        seen = set()
-        
-        for container in all_containers:
-            container_id = id(container)
-            if container_id not in seen:
-                # 書籍関連のリンクを含むコンテナのみ保持
-                links = container.find_all('a', href=True)
-                book_links = [link for link in links if '/de' in link.get('href', '') or '/series' in link.get('href', '')]
-                
-                if book_links:
-                    unique_containers.append(container)
-                    seen.add(container_id)
-        
-        return unique_containers
-    
-    def _extract_book_info_from_container(self, container: Tag) -> Optional[Dict[str, str]]:
-        """コンテナから書籍情報を抽出"""
+    def extract_book_info(self, container) -> Optional[Dict[str, str]]:
+        """BOOK☆WALKER書籍情報抽出（リファクタリング版）"""
         try:
             info = {}
             
-            # URLの抽出（優先度順）
+            # URL抽出（優先度順）
             url_selectors = [
-                'a[href*="/de"]',      # 最優先
-                'a[href*="/series"]',  # 次優先
-                'a[href*="/book"]',    # 補助
-                'a[href]'              # フォールバック
+                'a[href*="/de/"]',      # 最優先
+                'a[href*="/series/"]',  # 次優先
+                'a[href*="/book/"]',    # 補助
+                'a[href]'               # フォールバック
             ]
             
             url = None
@@ -285,7 +207,7 @@ class BookWalkerAdvancedScraper(RequestsScraper):
                 if url_element and url_element.get('href'):
                     url = url_element.get('href')
                     if url.startswith('/'):
-                        url = self.BASE_URL + url
+                        url = self.base_url + url
                     break
             
             if not url:
@@ -293,8 +215,8 @@ class BookWalkerAdvancedScraper(RequestsScraper):
             
             info['url'] = url
             
-            # タイトルの抽出（複数の方法を試行）
-            title = self._extract_title_from_container(container, url_element)
+            # タイトル抽出
+            title = self._extract_bookwalker_title(container, url_element)
             
             if not title or len(title.strip()) < 3:
                 return None
@@ -312,11 +234,30 @@ class BookWalkerAdvancedScraper(RequestsScraper):
             return info
             
         except Exception as e:
-            logger.debug(f"書籍情報抽出エラー: {str(e)}")
+            logger.debug(f"BOOK☆WALKER書籍情報抽出エラー: {str(e)}")
             return None
     
-    def _extract_title_from_container(self, container: Tag, url_element: Tag = None) -> Optional[str]:
-        """コンテナからタイトルを抽出（多段階アプローチ）"""
+    def _extract_bookwalker_series_name(self, title: str) -> str:
+        """BOOK☆WALKERシリーズ名抽出"""
+        patterns = [
+            r'[①-⑳]',
+            r'第\d+巻',
+            r'\d+巻',
+            r'\(\d+\)',
+            r'[１２３４５６７８９０]+',
+            r'[上中下]',
+            r'前編|後編|完結編',
+            r'【[^】]*】',
+        ]
+        
+        series_name = title
+        for pattern in patterns:
+            series_name = re.sub(pattern, '', series_name).strip()
+        
+        return series_name if series_name else title
+    
+    def _extract_bookwalker_title(self, container, url_element=None) -> Optional[str]:
+        """BOOK☆WALKERタイトル抽出（多段階アプローチ）"""
         
         # Method 1: URLリンクのタイトル属性
         if url_element and url_element.get('title'):
@@ -347,7 +288,7 @@ class BookWalkerAdvancedScraper(RequestsScraper):
         
         # Method 4: コンテナ内の最も長いテキストノード
         all_texts = []
-        for text_node in container.find_all(text=True):
+        for text_node in container.find_all(string=True):
             text = text_node.strip()
             if len(text) > 5 and not any(word in text.lower() for word in ['見る', 'more', '詳細', 'javascript', 'function']):
                 all_texts.append(text)
@@ -366,33 +307,3 @@ class BookWalkerAdvancedScraper(RequestsScraper):
                 return alt_text
         
         return None
-    
-    async def _verify_url(self, url: str, expected_title: str) -> bool:
-        """URL検証（簡易版）"""
-        try:
-            if not url or not url.startswith(self.BASE_URL):
-                return False
-            
-            # BOOK☆WALKERの書籍URLパターンチェック
-            valid_patterns = ['/de', '/series', '/book']
-            return any(pattern in url for pattern in valid_patterns)
-            
-        except Exception as e:
-            logger.error(f"URL検証エラー: {url} - {str(e)}")
-            return False
-    
-    def get_site_specific_headers(self) -> Dict[str, str]:
-        """BOOK☆WALKER用ヘッダー（最適化版）"""
-        return {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
-            'Accept-Language': 'ja,en-US;q=0.9,en;q=0.8',
-            'Accept-Encoding': 'gzip, deflate, br',
-            'DNT': '1',
-            'Connection': 'keep-alive',
-            'Upgrade-Insecure-Requests': '1',
-            'Sec-Fetch-Dest': 'document',
-            'Sec-Fetch-Mode': 'navigate',
-            'Sec-Fetch-Site': 'none',
-            'Cache-Control': 'max-age=0'
-        }
